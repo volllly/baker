@@ -6,4 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/volllly/restcrab/HEAD
+## [v0.1.0] - 2022-05-20
+
+### Added
+
+- Add `Baker` derive macro
+- Add `.bake()` functionality
+- Add `.view()` functionality
+
+[Unreleased]: https://github.com/volllly/baker/compare/v0.1.0...HEAD
+[v0.1.0]: https://github.com/volllly/rotz/baker/tag/v0.1.0
