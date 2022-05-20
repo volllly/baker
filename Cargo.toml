@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors = [ "Paul Volavsek <paul.volavsek@gmail.com>" ]
 license = "MIT"
-description = ""
 repository = "https://github.com/volllly/baker"
 documentation = "https://docs.rs/baker/"
 
