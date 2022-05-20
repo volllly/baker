@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = [ "Paul Volavsek <paul.volavsek@gmail.com>" ]
 license = "MIT"
+description = "Derive macro for creating intermediate structs."
 repository = "https://github.com/volllly/baker"
 documentation = "https://docs.rs/baker/"
 
