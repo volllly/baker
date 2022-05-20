@@ -68,16 +68,10 @@ impl Field {
       if let Some(name) = &self.name {
         darling::Error::custom("Attribute name cannot be set when field is ignored").with_span(&name.span()).error()?;
       }
-    } else {
-      if self.map.is_some() && self.map_fn.is_some() {
-        darling::Error::custom("map_fn must not be set if map is set")
-          .with_span(&self.map_fn.as_ref().unwrap().span())
-          .error()?;
-      }
-
-      if self.map.is_none() && self.map_fn.is_none() {
-        darling::Error::custom("Either or map_fn must be set").error()?;
-      }
+    } else if self.map.is_some() && self.map_fn.is_some() {
+      darling::Error::custom("map_fn must not be set if map is set")
+        .with_span(&self.map_fn.as_ref().unwrap().span())
+        .error()?;
     }
 
     self.okay()
@@ -195,14 +189,14 @@ pub fn bake(
         return None;
       }
 
-      let map_fn = f.map_fn.as_ref().unwrap();
+      if let Some(map_fn) = &f.map_fn {
+        if has_map_fn.0 && (map_fn.view.is_none() && map_fn.try_view.is_none()) {
+          errors.push(darling::Error::custom("map_fn(view) or map_fn(try_view) is missing").with_span(&map_fn.span()));
+        }
 
-      if has_map_fn.0 && (map_fn.view.is_none() && map_fn.try_view.is_none()) {
-        errors.push(darling::Error::custom("map_fn(view) or map_fn(try_view) is missing").with_span(&map_fn.span()));
-      }
-
-      if has_map_fn.1 && (map_fn.bake.is_none() && map_fn.try_bake.is_none()) {
-        errors.push(darling::Error::custom("map_fn(bake) or map_fn(try_bake) is missing").with_span(&map_fn.span()));
+        if has_map_fn.1 && (map_fn.bake.is_none() && map_fn.try_bake.is_none()) {
+          errors.push(darling::Error::custom("map_fn(bake) or map_fn(try_bake) is missing").with_span(&map_fn.span()));
+        }
       }
 
       if errors.is_empty() {
@@ -276,7 +270,7 @@ pub fn bake(
             quote! { (#view)(self) }
           }
         } else {
-          return None;
+          quote! { &self.#ident }
         };
         quote! { #name: #value }.okay().some()
       },
@@ -347,7 +341,7 @@ pub fn bake(
             quote! { (#bake)(&self) }
           }
         } else {
-          return None;
+          quote! { self.#ident }
         };
         quote! { #name: #value }.okay().some()
       },

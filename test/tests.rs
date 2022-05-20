@@ -37,7 +37,6 @@ fn fail() {
   struct Test {
     #[baked(type = "String", map_fn(try_bake = "|u| Ok::<String, String>(u._new_type.first().unwrap().to_owned())", try_view = "|u| Err(\"failed\".to_string())"))]
     pub _new_type: Vec<String>,
-    #[baked(map = "self._field")]
     pub _field: String,
   }
 
