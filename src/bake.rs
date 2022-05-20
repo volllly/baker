@@ -382,7 +382,7 @@ pub fn bake(
     };
 
     quote! {
-      fn view<'__a>(&'__a self) -> #return_type {
+      pub fn view<'__a>(&'__a self) -> #return_type {
         #result
       }
     }
@@ -412,7 +412,7 @@ pub fn bake(
     };
 
     quote! {
-      fn bake(self) -> #return_type {
+      pub fn bake(self) -> #return_type {
         #result
       }
     }
