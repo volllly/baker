@@ -29,3 +29,32 @@ fn test() {
   assert_eq!(test.new_type.first().unwrap(), viewed.new_type);
   assert_eq!(&test.field, viewed.name);
 }
+
+#[test]
+fn fail() {
+  #[derive(Bake, Clone)]
+  #[baked(name = "Baked", error_type = "String")]
+  struct Test {
+    #[baked(type = "String", map_fn(try_bake = "|u| Ok::<String, String>(u._new_type.first().unwrap().to_owned())", try_view = "|u| Err(\"failed\".to_string())"))]
+    pub _new_type: Vec<String>,
+    #[baked(map = "self._field")]
+    pub _field: String,
+  }
+
+  let test = Test {
+    _new_type: vec!["1".to_string(), "2".to_string()],
+    _field: "test".to_string(),
+  };
+
+  if let Err(err) = test.clone().bake() {
+    assert_eq!(err, "failed".to_string());
+  } else {
+    panic!("bake() should have failed");
+  }
+
+  if let Err(err) = test.view() {
+    assert_eq!(err, "failed".to_string());
+  } else {
+    panic!("view() should have failed");
+  }
+}
