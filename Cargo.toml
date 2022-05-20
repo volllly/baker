@@ -1,0 +1,25 @@
+[package]
+name = "baker"
+version = "0.1.0"
+edition = "2021"
+authors = [ "Paul Volavsek <paul.volavsek@gmail.com>" ]
+license = "MIT"
+description = ""
+repository = "https://github.com/volllly/baker"
+documentation = "https://docs.rs/baker/"
+
+[dependencies]
+darling = "0.13"
+proc-macro2 = "1.0"
+quote = "1.0"
+somok = "1.5"
+syn = "1.0"
+
+[lib]
+name = "baker"
+path = "src/lib.rs"
+proc-macro = true
+
+[[test]]
+name = "test"
+path = "test/tests.rs"
