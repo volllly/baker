@@ -35,7 +35,7 @@ fn fail() {
   #[derive(Bake, Clone)]
   #[baked(name = "Baked", error_type = "String")]
   struct Test {
-    #[baked(type = "String", map_fn(try_bake = "|u| Ok::<String, String>(u._new_type.first().unwrap().to_owned())", try_view = "|u| Err(\"failed\".to_string())"))]
+    #[baked(type = "String", map_fn(try_bake = "|_u| Err(\"failed\".to_string())", try_view = "|_u| Err(\"failed\".to_string())"))]
     pub _new_type: Vec<String>,
     pub _field: String,
   }
