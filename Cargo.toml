@@ -9,7 +9,7 @@ repository = "https://github.com/volllly/baker"
 documentation = "https://docs.rs/baker/"
 
 [dependencies]
-darling = "0.13"
+darling = "0.14"
 proc-macro2 = "1.0"
 quote = "1.0"
 somok = "1.5"

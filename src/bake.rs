@@ -56,7 +56,7 @@ impl Field {
   }
 
   fn valid_combination(self) -> darling::Result<Self> {
-    if self.ignore.is_some() {
+    if self.ignore.is_present() {
       if let Some(map) = &self.map {
         darling::Error::custom("Attribute map cannot be set when field is ignored").with_span(&map.span()).error()?;
       }
@@ -137,7 +137,7 @@ pub fn bake(
   let mut generics_view = generics.clone();
   generics_view.params.insert(0, syn::parse_quote! { '__a });
 
-  let fields = data.take_struct().unwrap().fields.into_iter().filter(|f| f.ignore.is_none()).collect::<Vec<_>>();
+  let fields = data.take_struct().unwrap().fields.into_iter().filter(|f| !f.ignore.is_present()).collect::<Vec<_>>();
 
   let baked_fields = fields.iter().map(
     |Field {
