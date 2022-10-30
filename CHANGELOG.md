@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v0.1.3] - 2022-10-30
+## [v0.2.0] - 2022-10-30
 
 ### Added
 
@@ -32,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `.bake()` functionality
 - Add `.view()` functionality
 
-[Unreleased]: https://github.com/volllly/baker/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/volllly/baker/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/volllly/rotz/baker/tag/v0.2.0
 [v0.1.2]: https://github.com/volllly/rotz/baker/tag/v0.1.2
 [v0.1.1]: https://github.com/volllly/rotz/baker/tag/v0.1.1
 [v0.1.0]: https://github.com/volllly/rotz/baker/tag/v0.1.0
