@@ -1,4 +1,4 @@
-use darling::{FromDeriveInput, FromField, FromMeta};
+use darling::{util::PathList, FromDeriveInput, FromField, FromMeta};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use somok::Somok;
@@ -19,6 +19,9 @@ pub struct Struct {
 
   #[darling(default)]
   pub error_type: Option<syn::Path>,
+
+  #[darling(default)]
+  pub derive: PathList,
 }
 
 #[derive(Debug, FromField)]
@@ -27,9 +30,6 @@ pub struct Field {
   ident: Option<syn::Ident>,
   vis: syn::Visibility,
   ty: syn::Type,
-
-  #[darling(default, and_then = "Self::is_path")]
-  map: Option<darling::util::SpannedValue<syn::Expr>>,
 
   #[darling(default)]
   map_fn: Option<darling::util::SpannedValue<MapFn>>,
@@ -41,37 +41,19 @@ pub struct Field {
   new_type: Option<darling::util::SpannedValue<syn::Type>>,
 
   #[darling(default)]
-  name: Option<darling::util::SpannedValue<syn::Ident>>,
+  rename: Option<darling::util::SpannedValue<syn::Ident>>,
 }
 
 impl Field {
-  fn is_path(value: Option<darling::util::SpannedValue<syn::Expr>>) -> darling::Result<Option<darling::util::SpannedValue<syn::Expr>>> {
-    if let Some(value) = &value {
-      if !matches!(value.as_ref(), syn::Expr::Field(_)) {
-        darling::Error::custom("Expression must be a field").with_span(&value.span()).error()?
-      }
-    };
-
-    value.okay()
-  }
-
   fn valid_combination(self) -> darling::Result<Self> {
     if self.ignore.is_present() {
-      if let Some(map) = &self.map {
-        darling::Error::custom("Attribute map cannot be set when field is ignored").with_span(&map.span()).error()?;
-      }
-
       if let Some(new_type) = &self.new_type {
         darling::Error::custom("Attribute type cannot be set when field is ignored").with_span(&new_type.span()).error()?;
       }
 
-      if let Some(name) = &self.name {
-        darling::Error::custom("Attribute name cannot be set when field is ignored").with_span(&name.span()).error()?;
+      if let Some(rename) = &self.rename {
+        darling::Error::custom("Attribute rename cannot be set when field is ignored").with_span(&rename.span()).error()?;
       }
-    } else if self.map.is_some() && self.map_fn.is_some() {
-      darling::Error::custom("map_fn must not be set if map is set")
-        .with_span(&self.map_fn.as_ref().unwrap().span())
-        .error()?;
     }
 
     self.okay()
@@ -131,6 +113,7 @@ pub fn bake(
     name,
     name_view,
     error_type,
+    derive,
   }: Struct,
 ) -> Result<TokenStream, TokenStream> {
   let name_view = name_view.unwrap_or_else(|| format_ident!("{}View", &name));
@@ -145,14 +128,13 @@ pub fn bake(
        vis,
        ty,
        new_type,
-       name,
-       map: _,
+       rename,
        ignore: _,
        map_fn: _,
      }| {
-      let name = name.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
+      let rename = rename.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
       let ty = new_type.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ty);
-      quote! { #vis #name: #ty }
+      quote! { #vis #rename: #ty }
     },
   );
 
@@ -162,14 +144,13 @@ pub fn bake(
        vis,
        ty,
        new_type,
-       name,
-       map: _,
+       rename,
        ignore: _,
        map_fn: _,
      }| {
-      let name = name.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
+      let rename = rename.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
       let ty = new_type.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ty);
-      quote! { #vis #name: &'__a #ty }
+      quote! { #vis #rename: &'__a #ty }
     },
   );
 
@@ -184,10 +165,6 @@ pub fn bake(
     .iter()
     .filter_map(|f| {
       let mut errors: Vec<darling::Error> = vec![];
-
-      if f.map.is_some() {
-        return None;
-      }
 
       if let Some(map_fn) = &f.map_fn {
         if has_map_fn.0 && (map_fn.view.is_none() && map_fn.try_view.is_none()) {
@@ -221,17 +198,15 @@ pub fn bake(
          ident,
          vis: _,
          ty: _,
-         map,
          map_fn,
          ignore: _,
          new_type: _,
-         name,
+         rename,
        }| {
-        let name = name.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
+        let rename = rename.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
 
-        let value = if let Some(map) = map {
-          let map = &**map;
-          quote! { &#map }
+        let value = if map_fn.is_none() {
+          quote! { &self.#ident }
         } else if let Some(map_fn) = map_fn {
           let (view_spanned, try_variant) = if let Some(view_spanned) = &map_fn.view {
             (view_spanned, false)
@@ -272,7 +247,7 @@ pub fn bake(
         } else {
           quote! { &self.#ident }
         };
-        quote! { #name: #value }.okay().some()
+        quote! { #rename: #value }.okay().some()
       },
     )
     .partition(|f| f.is_ok());
@@ -292,17 +267,15 @@ pub fn bake(
          ident,
          vis: _,
          ty: _,
-         map,
          map_fn,
          ignore: _,
          new_type: _,
-         name,
+         rename,
        }| {
-        let name = name.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
+        let rename = rename.as_ref().map(|n| n.as_ref()).unwrap_or_else(|| ident.as_ref().unwrap());
 
-        let value = if let Some(map) = map {
-          let map = &**map;
-          quote! { #map }
+        let value = if map_fn.is_none() {
+          quote! { self.#ident }
         } else if let Some(map_fn) = map_fn {
           let (bake_spanned, try_variant) = if let Some(bake_spanned) = &map_fn.bake {
             (bake_spanned, false)
@@ -343,7 +316,7 @@ pub fn bake(
         } else {
           quote! { self.#ident }
         };
-        quote! { #name: #value }.okay().some()
+        quote! { #rename: #value }.okay().some()
       },
     )
     .partition(|f| f.is_ok());
@@ -415,10 +388,14 @@ pub fn bake(
   };
 
   quote! {
+    #[allow(dead_code)]
+    #[derive(#( #derive),*)]
     #vis struct #name #generics {
       #( #baked_fields ),*
     }
 
+    #[allow(dead_code)]
+    #[derive(#( #derive),*)]
     #vis struct #name_view #generics_view {
       #( #viewed_fields ),*
     }

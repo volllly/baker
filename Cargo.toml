@@ -1,8 +1,8 @@
 [package]
 name = "baker"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
-authors = [ "Paul Volavsek <paul.volavsek@gmail.com>" ]
+authors = ["Paul Volavsek <paul.volavsek@gmail.com>"]
 license = "MIT"
 description = "Derive macro for creating intermediate structs."
 repository = "https://github.com/volllly/baker"
