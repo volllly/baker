@@ -13,7 +13,7 @@ darling = "0.14"
 proc-macro2 = "1.0"
 quote = "1.0"
 somok = "1.5"
-syn = "1.0"
+syn = "2.0"
 
 [lib]
 name = "baker"
